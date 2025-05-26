@@ -1,0 +1,246 @@
+To check for Duplicate ==================
+SELECT transaction_id,COUNT(*)
+FROM sales 
+GROUP BY transaction_id
+HAVING COUNT(transaction_id) >1
+
+
+
+===============DELETE FROM CTE
+WHERE Row_Num=2===================
+
+WITH CTE AS (
+SELECT *,
+	ROW_NUMBER() OVER (PARTITION BY transaction_id ORDER BY transaction_id) AS Row_Num
+FROM sales
+)
+SELECT * FROM CTE
+WHERE transaction_id IN ('TXN240646','TXN342128','TXN855235','TXN981773')
+
+
+ To check Datatype===================
+SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE, IS_NULLABLE, COLUMN_DEFAULT
+FROM INFORMATION_SCHEMA.COLUMNS
+WHERE TABLE_NAME = 'sales'
+  AND TABLE_SCHEMA = 'sqlprojects';
+
+
+
+ To Check Null Values =====================
+SELECT 
+  SUM(customer_name IS NULL) AS NullCustomerName,
+  SUM(quantity IS NULL) AS NullQuantity,
+  SUM(price IS NULL) AS NullPrices
+FROM sales;
+
+
+treating null values ======================
+SELECT *
+FROM sales 
+WHERE transaction_id IS NULL
+OR
+customer_id IS NULL
+OR
+customer_name IS NULL
+OR
+customer_age IS NULL
+OR
+gender IS NULL
+OR
+product_id IS NULL
+OR
+product_name IS NULL
+OR
+product_category IS NULL
+OR
+quantity IS NULL
+or
+payment_mode is null
+or
+purchase_date is null
+or 
+status is null
+or 
+prices is null
+
+
+================Delete Null values=================
+DELETE FROM sales 
+WHERE  transaction_id IS NULL
+
+==============Select pacific customer name=================
+SELECT * FROM sales 
+Where Customer_name='Ehsaan Ram'
+
+
+==============Update Values==================
+UPDATE sales
+SET customer_id='CUST9494'
+WHERE transaction_id='TXN977900'
+
+
+SELECT * FROM sales 
+Where Customer_name='Damini Raju'
+
+UPDATE sales
+SET customer_id='CUST1401'
+WHERE transaction_id='TXN985663'
+
+SELECT * FROM sales 
+Where Customer_id='CUST1003'
+
+UPDATE sales
+SET customer_name='Mahika Saini',customer_age=35,gender='Male'
+WHERE transaction_id='TXN432798'
+
+Data Cleaning==================
+SELECT DISTINCT gender
+FROM sales
+
+============Male convert to M==========
+UPDATE sales
+SET gender='M'
+WHERE gender='Male'
+
+
+===============Female convert to F===========
+UPDATE sales
+SET gender='F'
+WHERE gender='Female'
+
+===========Distinct payment===========
+SELECT DISTINCT payment_mode
+FROM sales
+
+=========cc convert to Credit Card=========
+UPDATE sales
+SET payment_mode='Credit Card'
+WHERE payment_mode='CC'
+
+
+
+
+
+ ===================What are the top 5 most selling products by quantity?================================
+SELECT product_name, SUM(quantity) AS total_quantity_sold
+FROM sales
+WHERE status='delivered'
+GROUP BY product_name
+ORDER BY total_quantity_sold DESC
+LIMIT 5;
+
+
+ ================Which products are most frequently cancelled?===================
+SELECT product_name, COUNT(*) AS total_cancelled
+FROM sales
+WHERE status='cancelled'
+GROUP BY product_name
+ORDER BY total_cancelled DESC
+LIMIT 5;
+
+
+ ===============What time of the day has the highest number of purchases?=============
+SELECT 
+  CASE 
+    WHEN HOUR(time_of_purchase) BETWEEN 0 AND 5 THEN 'NIGHT'
+    WHEN HOUR(time_of_purchase) BETWEEN 6 AND 11 THEN 'MORNING'
+    WHEN HOUR(time_of_purchase) BETWEEN 12 AND 17 THEN 'AFTERNOON'
+    WHEN HOUR(time_of_purchase) BETWEEN 18 AND 23 THEN 'EVENING'
+  END AS time_of_day,
+  COUNT(*) AS total_orders
+FROM sales
+GROUP BY time_of_day
+ORDER BY total_orders DESC;
+
+
+
+SELECT 
+  HOUR(time_of_purchase) AS Peak_time,
+  COUNT(*) AS Total_orders
+FROM sales
+GROUP BY HOUR(time_of_purchase)
+ORDER BY Peak_time;
+
+
+ ============Who are the top 5 highest spending customers?================
+SELECT customer_name,
+  FORMAT(SUM(prices * quantity), 0) AS total_spend
+FROM sales 
+GROUP BY customer_name
+ORDER BY SUM(prices * quantity) DESC
+LIMIT 5;
+
+
+ =================Which product categories generate the highest revenue?===============
+SELECT 
+  product_category,
+  FORMAT(SUM(prices * quantity), 0) AS Revenue
+FROM sales 
+GROUP BY product_category
+ORDER BY SUM(prices * quantity) DESC;
+
+
+=================What is the return/cancellation rate per product category?==================
+cancellation==============
+SELECT product_category,
+	FORMAT(COUNT(CASE WHEN status='cancelled' THEN 1 END)*100.0/COUNT(*),'N3')+' %' AS cancelled_percent
+FROM sales 
+GROUP BY product_category
+ORDER BY cancelled_percent DESC
+
+return==============
+SELECT product_category,
+	FORMAT(COUNT(CASE WHEN status='returned' THEN 1 END)*100.0/COUNT(*),'N3')+' %' AS returned_percent
+FROM sales 
+GROUP BY product_category
+ORDER BY returned_percent DESC
+
+
+ ==============What is the most preferred payment mode?================
+SELECT payment_mode, COUNT(payment_mode) AS total_count
+FROM sales 
+GROUP BY payment_mode
+ORDER BY total_count desc
+
+
+=============== How does age group affect purchasing behavior?====================
+
+SELECT 
+  CASE  
+    WHEN customer_age BETWEEN 18 AND 25 THEN '18-25'
+    WHEN customer_age BETWEEN 26 AND 35 THEN '26-35'
+    WHEN customer_age BETWEEN 36 AND 50 THEN '36-50'
+    ELSE '51+'
+  END AS customer_age,
+  FORMAT(SUM(prices * quantity), 0) AS total_purchase
+FROM sales 
+GROUP BY customer_age
+ORDER BY SUM(prices * quantity) DESC;
+
+
+ ==============What’s the monthly sales trend?==================
+SELECT 
+  CASE  
+    WHEN customer_age BETWEEN 18 AND 25 THEN '18-25'
+    WHEN customer_age BETWEEN 26 AND 35 THEN '26-35'
+    WHEN customer_age BETWEEN 36 AND 50 THEN '36-50'
+    ELSE '51+'
+  END AS customer_age,
+  FORMAT(SUM(prices * quantity), 0) AS total_purchase
+FROM sales 
+GROUP BY customer_age
+ORDER BY SUM(prices * quantity) DESC;
+
+
+
+SELECT 
+	--YEAR(purchase_date) AS Years,
+	MONTH(purchase_date) AS Months,
+	FORMAT(SUM(prices*quantity),'C0','en-IN') AS total_sales,
+	SUM(quantity) AS total_quantity
+FROM sales
+GROUP BY MONTH(purchase_date)
+ORDER BY Months
+
+
+
